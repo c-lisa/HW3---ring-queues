@@ -1,45 +1,45 @@
-// Description: An incomplete implementation of iterators for a RingQueue class.
-// Notes: The project DOES compile but there is no meaningful output]
-// Your job: To complete this set of classes so that the output produced by 'main' (below), matches the sample file provided at the end of this file.
-
 #include <iostream>
 
-// Forward declaration
 template <typename ItemType, int MAX_SIZE>
 class RingQueue;
 
 template <typename ItemType, int MAX_SIZE>
+//RQ Class
 class RingQueue {
-	// Nested Forward declaration of RingQueue<ItemType,MAX_SIZE>::iterator. This is needed if one plans to turn this home-made iterator 
-	//into one of the special categories of iterators (e.g., input, output, forward, etc.).
 public:
 	class iterator;
-	
+
 	// Aliases
 	typedef ItemType* pointer;
 	typedef ItemType& reference;
-	
-	// Definition of RingQueue<ItemType,MAX_SIZE>::iterator
-public:
-	class iterator {
-	private:
-		RingQueue* parent; //Pointer to parent container
-		int offset; //Position within Ring Queue is det by how far ahead we are from beg of queue
 
+public:
+	//ITERATOR class
+	class iterator {
+	
+	//PRIVATE VARIABLES
+	private:
+		RingQueue* parent;
+		int offset; //Position within RQ is det by how far ahead we are from beg of queue
+
+	//PRIVATE FUNCTIONS/CLASSES 
 	private:  // Private constructor
 		iterator(RingQueue* _parent, int _offset = 0) : parent(_parent), offset(_offset) { }
-		friend class RingQueue<ItemType, MAX_SIZE>; // It is quite common for Containers and their iterators to be friends. After all, they should work closely together.
-		
+		friend class RingQueue<ItemType, MAX_SIZE>; 
+
+	//PUBLIC FUNCTIONS 
 	public:
 		reference operator*() {
-			return (parent -> buffer[(((parent->begin_index) + offset) % MAX_SIZE)]); 
+			return (parent->buffer[((parent->begin_index) + offset) % MAX_SIZE]);
 		}
 		iterator& operator++() {
-			if (offset == parent->ring_size)
+			//if the offset is equal to the current ring_size, then that means the begin_index is at 0, which means offset needs to be at 0 as well ?QFORB?
+			if (offset == (parent->ring_size))
 			{
-				offset = 0; 
+				offset = 0;
 			}
-			else
+			//otherwise, just increment offset 
+			else 
 			{
 				++offset;
 			}
@@ -58,50 +58,66 @@ public:
 			else return true;
 		}
 		bool operator!=(const iterator& rhs) const {
-			if ((parent == rhs.parent) || (offset != rhs.offset))
+			if ((parent != rhs.parent) || (offset != rhs.offset))
 			{
-				return true; 
+				return true;
 			}
-			else return false; 
+			else return false;
 		}
 	};
+	
+	//do i need this? ?QFORB?
 
+	//CONST ITERATOR CLASS
 	/*
+	//Only RingQueue objects can create const_iterators...however, const_iterators can be 'copied'.
 	class const_iterator{
+	//CONST ITERATOR PRIVATE VARIABLES
 	private:
-		RingQueue* parent; //Pointer to parent container
-		int offset; //Position within Ring Queue is det by how far ahead we are from beg of queue
+	RingQueue* parent;
+	int offset; 
 
-	private:
-	// Only RingQueue objects can create const_iterators...
-		const_iterator();
-
-	public:	// ... however, const_iterators can be 'copied'.
-		const_iterator(const const_iterator& a)
-		{
-			iterator copy = a.parent; 
-			parent = copy; 
-			offset = a.offset; 
-		}
+	//CONST ITERATOR PRIVATE CONSTRUCTOR 
+	private: 
+	const_iterator();
+	
+	//CONST ITERATOR PUBLIC ??? QFORB
+	public:
+	const_iterator(const const_iterator& a)
+	{
+		iterator copy = a.parent;
+		parent = copy;
+		offset = a.offset;
+	}
 
 	friend class RingQueue<ItemType,MAX_SIZE>;
 	};
+
+	friend class const_iterator;  // not implemented... yet.
 	*/
 
 	friend class iterator; //Friendship goes both ways here.
-	//friend class const_iterator;  // not implemented... yet.
-
+	
+//PRIVATE VARIABLES OF RQ
 private:
-	ItemType buffer[MAX_SIZE]; // A fixed-size static array with constant capacity that represents the RingQueue
-		
-	int begin_index; // The starting index. It changes according to a very specific set of rules (below).
-	int ring_size; // The actual size of the RingQueue. Not to be confused with its capacity.
-	
-	// A helper function that computes the index of 'the end' of the RingQueue
+	ItemType buffer[MAX_SIZE]; //A fixed-size static array with constant capacity that represents the RQ
+
+	int begin_index; 
+	int ring_size; 
+
+	// A helper function that computes the index of 'the end' of the RQ
 	int end_index() const {
-		return ((begin_index + ring_size) % MAX_SIZE); 
+		/*
+		For example: 
+		If begin_index is 0 and the ring_size is 0, we % this by 7 and get 0. 
+		If begin_index is 0 and the ring_size is 1, we % this by 7 and get 1. 
+		If begin_index is 0 and the ring_size is 2, we % this by 7 and get 2.
+		If begin_index is 1 and the ring_size is 2, we % this by 7 and get 3. 
+		*/
+		return ((begin_index + ring_size) % MAX_SIZE);
 	}
-	
+
+//PUBLIC FUNTIONS OF RQ
 public:
 	// Constructor
 	RingQueue() : begin_index(0), ring_size(0) { }
@@ -112,72 +128,106 @@ public:
 		{
 			std::cerr << "Warning: Empty ring!\n";
 		}
-		return buffer[begin_index]; 
+		return buffer[begin_index];
 	}
 	ItemType back() const {
 		if (ring_size == 0) std::cerr << "Warning: Empty ring!\n";
 		return buffer[end_index];
 	}
-	
+
 	// Mutators
 	void push_back(const ItemType& value) {
+		/*
+		if something pushed back: 
+		begin_index stays the same UNLESS the ring_size is equal to the max_size
+			if it is in this condition, then we increment begin_index 
+		ring_size increases UNLESS the ring_size is equal to the max_size 
+			if in this condition, it stays the same
+		end_index increases UNTIL it is 
+		*/
+		
 		buffer[end_index()] = value;
+		
+		if (ring_size == MAX_SIZE) //meaning that we've reached the capacity
+		{
+			++begin_index;
+			//ring_size is the same if we've hit MAX_SIZE
+			
+			//need to set end_index back to 0 QFORB
+		}
+		else
+		{
+			//begin_index same 
+			++ring_size; 
 
+			//need to increment end_index QFORB
+		}
+
+		//Brent's code
 		/*
 		if (ring_size == MAX_SIZE)
 		{
-			size_t temp = (++begin_index) % MAX_SIZE; 
-			begin_index = end_index = temp; 
+		size_t temp = (++begin_index) % MAX_SIZE;
+		begin_index = end_index = temp;
 		}
 		else (ring_size < MAX_SIZE)
 		{
-			end_index() = (end_index() + 1) % size; 
-			++ring_size; 
+		end_index() = (end_index() + 1) % size;
+		++ring_size;
 		}
 		*/
-		
-		if (ring_size < MAX_SIZE) //if ring_size is less than ring_capacity, then pushback value and increase the curr ring_size
+		//MY OLD CODE
+		/*
+		if (ring_size < MAX_SIZE) 
 		{
 			++ring_size;
-			//end_index() = (end_index() + 1) % MAX_SIZE; //BRENT
 		}
-		else //if ring_size is equal to ring_capacity, then pushback value and inc the begin_index (to get rid of oldest value) 
+		else 
 		{
-			//check if begin_index has not reached ring_capacity...then just increment begin_index
 			if (begin_index < MAX_SIZE)
 			{
-				//size_t temp = (++begin_index) % MAX_SIZE;
-				//start = end = temp?? 
 				++begin_index;
 			}
-			else //if it has reached MAX_SIZE, then reset back to 0
+			else
 			{
-				begin_index = 0; 
+				begin_index = 0;
 			}
 		}
-		
+		*/
+
 		return;
 	}
 	void pop_front() {
 		/*
+		begin_index needs to increment UNLESS ?? QFORB
+		ring_size always decreases
+		end_index stays the same 
+		*/
+
+		//BRENT'S CODE 
+		/*
 		if (ring_size == 0)
 		{
-			throw; 
+		throw;
 		}
 		else
 		{
-			--ring_size; 
-			begin_index = (begin_index < (MAX_SIZE - 1)) ? begin_index + 1 : 0; 
+		--ring_size;
+		begin_index = (begin_index < (MAX_SIZE - 1)) ? begin_index + 1 : 0;
 		}
 		*/
-		++begin_index; 
-		--ring_size; 
+		
+		++begin_index;
+		--ring_size;
+		//end_index stays the same
+
 		return;
 	}
 
 	// Functions that return iterators
 	iterator begin() {
 		return iterator(this, 0);
+		//QFORB - should this always be 0? should be right according to word doc
 	}
 	iterator end() {
 		return iterator(this, ring_size);
@@ -188,7 +238,7 @@ public:
 		return ring_size;
 	}
 
-	// Debugging functions
+	// Debugging functions aka COUT function
 	void dump_queue() const {
 		std::cout << "Raw queue...\n";
 		for (size_t i = 0; i < MAX_SIZE; ++i)
@@ -212,7 +262,7 @@ int main() {
 
 	std::cout << "Queue via size: \n";
 
-	//RingQueue<int, 7>::iterator it = rq.begin(); 
+	//RingQueue<int, 7>::iterator it = rq.begin(); ?QFORB?
 	auto it = rq.begin();
 	for (size_t i = 0; i < rq.size(); ++i) {
 		std::cout << "Value: " << *it << ", address: " << &(*it) << '\n';
@@ -220,9 +270,8 @@ int main() {
 	}
 	std::cout << '\n';
 
-	// Uncomment the block below only when you have a working implementation of RingQueue<ItemType,int>::end(). If the implementation is not correct, it might result in an infinite loop.
 	std::cout << "Queue via iterators: \n";
-	for ( auto it = rq.begin() ; it != rq.end() ; ++it ) 
+	for (auto it = rq.begin(); it != rq.end(); ++it)
 	{
 		std::cout << "Value: " << *it << ", address: " << &(*it) << '\n';
 	}
@@ -230,7 +279,7 @@ int main() {
 
 	rq.dump_queue();
 
-	system("pause"); 
+	system("pause");
 	return 0;
 }
 
@@ -239,7 +288,9 @@ int main() {
 The output of your program [once the missing code is added] should look more or less like the output below.
 
 Note:
-It is dependent on the device where this driver is executed. However, it should be clear that the difference between consecutive memory addresses is equal to the number reported by 'size_of( int )'.
+It is dependent on the device where this driver is executed. 
+However, it should be clear that the difference between consecutive memory addresses is 
+equal to the number reported by 'size_of( int )'.
 +++++++++++++++++++++++++++++++++++++++++++++++
 
 Raw queue...
