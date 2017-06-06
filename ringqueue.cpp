@@ -33,8 +33,8 @@ public:
 			return (parent->buffer[((parent->begin_index) + offset) % MAX_SIZE]);
 		}
 		iterator& operator++() {
-			//if the offset is equal to the current ring_size, then that means the begin_index is at 0, which means offset needs to be at 0 as well ?QFORB?
-			if (offset == (parent->ring_size))
+			//if the offset is equal to the current ring_size, then that means the begin_index is at 0, which means offset needs to be at 0 as well 
+			if (offset == MAX_SIZE) 
 			{
 				offset = 0;
 			}
@@ -66,7 +66,7 @@ public:
 		}
 	};
 	
-	//do i need this? ?QFORB?
+	//do i need this? just return const ref
 
 	//CONST ITERATOR CLASS
 	/*
@@ -81,7 +81,7 @@ public:
 	private: 
 	const_iterator();
 	
-	//CONST ITERATOR PUBLIC ??? QFORB
+	//CONST ITERATOR PUBLIC 
 	public:
 	const_iterator(const const_iterator& a)
 	{
@@ -153,81 +153,27 @@ public:
 			++begin_index;
 			//ring_size is the same if we've hit MAX_SIZE
 			
-			//need to set end_index back to 0 QFORB
+			//need to set end_index back to 0 
 		}
 		else
 		{
 			//begin_index same 
 			++ring_size; 
 
-			//need to increment end_index QFORB
+			//need to increment end_index 
 		}
-
-		//Brent's code
-		/*
-		if (ring_size == MAX_SIZE)
-		{
-		size_t temp = (++begin_index) % MAX_SIZE;
-		begin_index = end_index = temp;
-		}
-		else (ring_size < MAX_SIZE)
-		{
-		end_index() = (end_index() + 1) % size;
-		++ring_size;
-		}
-		*/
-		//MY OLD CODE
-		/*
-		if (ring_size < MAX_SIZE) 
-		{
-			++ring_size;
-		}
-		else 
-		{
-			if (begin_index < MAX_SIZE)
-			{
-				++begin_index;
-			}
-			else
-			{
-				begin_index = 0;
-			}
-		}
-		*/
-
 		return;
 	}
 	void pop_front() {
-		/*
-		begin_index needs to increment UNLESS ?? QFORB
-		ring_size always decreases
-		end_index stays the same 
-		*/
-
-		//BRENT'S CODE 
-		/*
-		if (ring_size == 0)
-		{
-		throw;
-		}
-		else
-		{
-		--ring_size;
-		begin_index = (begin_index < (MAX_SIZE - 1)) ? begin_index + 1 : 0;
-		}
-		*/
-		
+		//(begin_index+1)	% MAX_SIZE
 		++begin_index;
 		--ring_size;
-		//end_index stays the same
-
 		return;
 	}
 
 	// Functions that return iterators
 	iterator begin() {
 		return iterator(this, 0);
-		//QFORB - should this always be 0? should be right according to word doc
 	}
 	iterator end() {
 		return iterator(this, ring_size);
@@ -262,7 +208,6 @@ int main() {
 
 	std::cout << "Queue via size: \n";
 
-	//RingQueue<int, 7>::iterator it = rq.begin(); ?QFORB?
 	auto it = rq.begin();
 	for (size_t i = 0; i < rq.size(); ++i) {
 		std::cout << "Value: " << *it << ", address: " << &(*it) << '\n';
